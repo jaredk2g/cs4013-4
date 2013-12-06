@@ -11,7 +11,7 @@ This project is the front-end to a compiler for a subset of Pascal. Steps perfor
 
 2.  Syntax analysis - recursive descent parsing
 
-3.  Semantic analysis -type and scope checking and declarations processing
+3.  Semantic analysis - type and scope checking and declarations processing
 
 4.  Memory address computation
 
