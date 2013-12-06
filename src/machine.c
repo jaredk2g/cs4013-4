@@ -181,6 +181,13 @@ MachineResult machine_int(char *in)
 				{
 					res.token->type = TOKEN_NUM;
 					res.token->attribute = ATTRIBUTE_INT;
+
+					// convert input to int
+					char *num = (char *)malloc(f - in + 1);
+					strncpy(num, in, f - in);
+					num[f - in] = '\0';
+
+					sscanf(num, "%d", &res.intval);
 				}
 
 				f--;				

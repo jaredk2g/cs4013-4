@@ -249,17 +249,11 @@ struct Attributes parse_type(ParserData *parser_data)
 			semerr("Array bounds must be ints", tok->line_no, parser_data);
 			t.t.std_type = ERR;
 		} else {
-			int num1val;
-			sscanf(num1->lexeme, "%d", &num1val);
-			int num2val;
-			sscanf(num2->lexeme, "%d", &num2val);
-
 			if(st.t.std_type == INT) t.t.std_type = AINT;
 			if(st.t.std_type == REAL) t.t.std_type = AREAL;
-			t.t.start = num1val;
-			t.t.end = num2val;
-
-			if (num1val > num2val) {
+			t.t.start = num1->intval;
+			t.t.end = num2->intval;
+			if (t.t.start > t.t.end) {
 				semerr("Array bounds not valid", tok->line_no, parser_data);
 				t.t.std_type = ERR;
 			}
@@ -1229,9 +1223,10 @@ void parse_factor_(ParserData *parser_data, struct Attributes *f_)
 		else if (e.t.std_type != INT) {
 			semerr("Index must be an integer", tok->line_no, parser_data);
 			f_->t.std_type = ERR;
-		} else if (f_->in.std_type == AINT || f_->in.std_type == AREAL)
-			f_->t = f_->in;
-		else {
+		} else if (f_->in.std_type == AINT || f_->in.std_type == AREAL) {
+			if (f_->in.std_type == AINT) f_->t.std_type = INT;
+			if (f_->in.std_type == AREAL) f_->t.std_type = REAL;
+		} else {
 			semerr("Symbol is not an array", tok->line_no, parser_data);
 			f_->t.std_type = ERR;
 		}

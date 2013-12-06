@@ -14,6 +14,7 @@ typedef struct MachineResult {
 	struct Token *token;
 	char *f;
 	int line_no;
+	int intval;
 } MachineResult;
 
 #define MAX_ID_LEN 10

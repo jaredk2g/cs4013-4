@@ -72,6 +72,7 @@ START_TEST (test_machine_int)
 	MachineResult res = machine_int(str);
 	ck_assert(res.token->type == TOKEN_NUM);
 	ck_assert(res.token->attribute == ATTRIBUTE_INT);
+	ck_assert_int_eq(1234567890, res.intval);
 	ck_assert(res.f == str + strlen(str));
 
 	// valid int
@@ -79,6 +80,7 @@ START_TEST (test_machine_int)
 	res = machine_int(str);
 	ck_assert(res.token->type == TOKEN_NUM);
 	ck_assert(res.token->attribute == ATTRIBUTE_INT);
+	ck_assert_int_eq(0, res.intval);
 	ck_assert(res.f == str + strlen(str));
 
 	// invalid int
