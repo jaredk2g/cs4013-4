@@ -224,6 +224,21 @@ START_TEST (test_types_equal)
 }
 END_TEST
 
+START_TEST (test_type_size)
+{
+	Type t;
+
+	t = (Type){INT,0,0};
+	ck_assert_int_eq(4, type_size(t));
+
+	t = (Type){REAL,0,0};
+	ck_assert_int_eq(8, type_size(t));
+
+	t = (Type){AREAL,4,8};
+	ck_assert_int_eq(40, type_size(t));
+}
+END_TEST
+
 Suite * symbol_table_suite (void)
 {
 	Suite *s = suite_create ("Symbol Table");
@@ -248,6 +263,7 @@ Suite * symbol_table_suite (void)
 	tcase_add_test (tc_core, test_get_num_params);
 	tcase_add_test (tc_core, test_get_param_type);
 	tcase_add_test (tc_core, test_types_equal);
+	tcase_add_test (tc_core, test_type_size);
 
 	suite_add_tcase (s, tc_core);
 

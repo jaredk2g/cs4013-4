@@ -235,6 +235,18 @@ Type get_param_type(char *name, int n, struct ParserData *parser_data)
 	return TYPE_DEFAULT;
 }
 
+int type_size(Type t)
+{
+	int unit_size = 0;
+
+	if (t.std_type == INT || t.std_type == AINT) unit_size = 4;
+	if (t.std_type == REAL || t.std_type == AREAL) unit_size = 8;
+
+	int multiplier = (t.std_type == AINT || t.std_type == AREAL) ? (t.end - t.start + 1) : 1;
+
+	return unit_size * multiplier;
+}
+
 int types_equal(Type a, Type b)
 {
 	if (a.std_type == b.std_type) {

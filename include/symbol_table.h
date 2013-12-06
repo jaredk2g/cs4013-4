@@ -71,6 +71,7 @@ Type get_type(char *name, struct ParserData *parser_data);
 int get_num_params(char *name, struct ParserData *parser_data);
 Type get_param_type(char *name, int n, struct ParserData *parser_data);
 
+int type_size(Type t);
 int types_equal(Type a, Type b);
 char *type_to_str(Type type);
 char *symbol_type_to_str(Symbol *symbol);
