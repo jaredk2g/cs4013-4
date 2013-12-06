@@ -299,13 +299,24 @@ char *symbol_type_to_str(Symbol *symbol)
 void output_symbol_table(FILE *f, SymbolTable *symbol_table, int level)
 {
 	SymbolTable *s = symbol_table;
+	int offset = 0;
 
 	while (s != NULL && s->symbol != NULL)
 	{
 		// indent
 		for (int l = 0; l < level; l++) fprintf (f, "  ");
 
-		fprintf (f, "%s (%s)\n", s->symbol->name, symbol_type_to_str(s->symbol));
+		Type t = s->symbol->type;
+
+		char *offset_str = (char *)malloc(100);
+		if (s->symbol->param == 0 && s->symbol->fun == 0 && t.std_type != PGNAME) {
+			sprintf(offset_str, "offset %d", offset);
+
+			// compute new offset
+			offset += type_size(t);
+		}
+
+		fprintf (f, "%s (%s) %s\n", s->symbol->name, symbol_type_to_str(s->symbol), offset_str);
 
 		// recurse children
 		output_symbol_table(f, s->child, level + 1);

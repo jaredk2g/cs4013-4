@@ -9,6 +9,10 @@ begin
 	fun3 := a + b / x
 end;
 function fun2(a: integer; b: integer): integer;
+var c: integer;
+var d: real;
+var e: array [1..2] of real;
+var f: integer;
 begin
 	x := 2;
 	fun2 := fun3(a + x, b mod y)
