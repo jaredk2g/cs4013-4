@@ -6,9 +6,13 @@ Fourth compilers project for CS4013 at the University of Tulsa
 ### Introduction
 
 This project is the front-end to a compiler for a subset of Pascal. Steps performed are:
+
 1.  Lexical analysis
+
 2.  Syntax analysis (recursive-descent parsing)
+
 3.  Semantic analysis
+
 4.  Memory address computation
 
 ### Requirements
