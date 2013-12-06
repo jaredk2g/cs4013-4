@@ -1,0 +1,13 @@
+language: c
+
+env: PKG_CONFIG_PATH=$TRAVIS_BUILD_DIR/check-0.9.10 LD_LIBRARY_PATH=$TRAVIS_BUILD_DIR/lib
+
+before_install:
+- wget http://downloads.sourceforge.net/project/check/check/0.9.10/check-0.9.10.tar.gz
+- tar -xzf check-0.9.10.tar.gz
+- cd check-0.9.10/
+- ./configure --prefix=$TRAVIS_BUILD_DIR
+- make && make install
+- ls $TRAVIS_BUILD_DIR/include
+- ls $TRAVIS_BUILD_DIR/lib
+- cd ..

@@ -1,0 +1,28 @@
+# Object files
+*.o
+obj/
+*.dSYM
+
+# Libraries
+*.lib
+*.a
+
+# Shared objects (inc. Windows DLLs)
+*.dll
+*.so
+*.so.*
+*.dylib
+
+# Executables
+*.exe
+*.out
+*.app
+
+.DS_STORE
+*.!sync
+
+bin/output
+bin/lexer
+bin/tests
+bin/parser
+bin/pascal
