@@ -21,7 +21,7 @@ This project is the front-end to a compiler for a subset of Pascal. Steps perfor
 - gcc
 - [Check](http://check.sourceforge.net/) (only for testing)
 
-### Running
+### Usage
 
 Compile the program with `make`.
 
