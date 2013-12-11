@@ -177,12 +177,16 @@ void parse_declarations(ParserData *parser_data)
 	switch (tok->token->type) {
 	case TOKEN_VAR:
 		if (match(TOKEN_VAR, parser_data) == NULL) { doSynch = 1; break; }
+
 		idptr = match(TOKEN_ID, parser_data);
 		if (idptr == NULL) { doSynch = 1; break; }
+
 		if (match(TOKEN_COLON, parser_data) == NULL) { doSynch = 1; break; }
+
 		Attributes t = parse_type(parser_data);
 		check_add_var(idptr->lexeme, t, parser_data);
 		if (match(TOKEN_SEMICOLON, parser_data) == NULL) { doSynch = 1; break; }
+
 		parse_declarations_(parser_data);
 	break;
 	default:
@@ -205,11 +209,15 @@ void parse_declarations_(ParserData *parser_data)
 	case TOKEN_VAR:
 		if (match(TOKEN_VAR, parser_data) == NULL) { doSynch = 1; break; }
 		idptr = match(TOKEN_ID, parser_data);
+
 		if (idptr == NULL) { doSynch = 1; break; }
+
 		if (match(TOKEN_COLON, parser_data) == NULL) { doSynch = 1; break; }
+
 		Attributes t = parse_type(parser_data);
 		check_add_var(idptr->lexeme, t, parser_data);
 		if (match(TOKEN_SEMICOLON, parser_data) == NULL) { doSynch = 1; break; }
+
 		parse_declarations_(parser_data);
 	break;
 	case TOKEN_FUNCTION:
@@ -236,14 +244,19 @@ struct Attributes parse_type(ParserData *parser_data)
 	case TOKEN_ARRAY:
 		if (match(TOKEN_ARRAY, parser_data) == NULL) { doSynch = 1; break; }
 		if (match(TOKEN_LBRACKET, parser_data) == NULL) { doSynch = 1; break; }
+
 		MachineResult *num1 = match(TOKEN_NUM, parser_data);
 		if (num1 == NULL) { doSynch = 1; break; }
+
 		if (match(TOKEN_PERIOD, parser_data) == NULL) { doSynch = 1; break; }
 		if (match(TOKEN_PERIOD, parser_data) == NULL) { doSynch = 1; break; }
+
 		MachineResult *num2 = match(TOKEN_NUM, parser_data);
 		if (num2 == NULL) { doSynch = 1; break; }
+
 		if (match(TOKEN_RBRACKET, parser_data) == NULL) { doSynch = 1; break; }
 		if (match(TOKEN_OF, parser_data) == NULL) { doSynch = 1; break; }
+
 		st = parse_std_type(parser_data);
 		if (num1->token->attribute != ATTRIBUTE_INT || num2->token->attribute != ATTRIBUTE_INT) {
 			semerr("Array bounds must be ints", tok->line_no, parser_data);
@@ -417,8 +430,10 @@ void parse_subprogram_head(ParserData *parser_data)
 	switch (tok->token->type) {
 	case TOKEN_FUNCTION:
 		if (match(TOKEN_FUNCTION, parser_data) == NULL) { doSynch = 1; break; }
+
 		idptr = match(TOKEN_ID, parser_data);
 		if (idptr == NULL) { doSynch = 1; break; }
+
 		check_enter_method(idptr->lexeme, parser_data);
 		sh_ = parse_subprogram_head_(parser_data);
 		set_method_type(sh_.t, parser_data);
@@ -444,16 +459,21 @@ struct Attributes parse_subprogram_head_(ParserData *parser_data)
 	case TOKEN_LPAREN:
 		a = parse_arguments(parser_data);
 		sh_.c = a.c;
+
 		if (match(TOKEN_COLON, parser_data) == NULL) { doSynch = 1; break; }
+
 		st = parse_std_type(parser_data);
 		sh_.t = st.t;
+
 		if (match(TOKEN_SEMICOLON, parser_data) == NULL) { doSynch = 1; break; }
 	break;
 	case TOKEN_COLON:
 		sh_.c = 0;
 		if (match(TOKEN_COLON, parser_data) == NULL) { doSynch = 1; break; }
+
 		st = parse_std_type(parser_data);
 		sh_.t = st.t;
+
 		if (match(TOKEN_SEMICOLON, parser_data) == NULL) { doSynch = 1; break; }
 	break;
 	default:
@@ -477,7 +497,9 @@ struct Attributes parse_arguments(ParserData *parser_data)
 	switch (tok->token->type) {
 	case TOKEN_LPAREN:
 		if (match(TOKEN_LPAREN, parser_data) == NULL) { doSynch = 1; break; }
+
 		pl = parse_param_list(parser_data);
+
 		a.c = pl.c;
 		if (match(TOKEN_RPAREN, parser_data) == NULL) { doSynch = 1; break; }
 	break;
@@ -504,7 +526,9 @@ struct Attributes parse_param_list(ParserData *parser_data)
 	case TOKEN_ID:
 		idptr = match(TOKEN_ID, parser_data);
 		if (idptr == NULL) { doSynch = 1; break; }
+
 		if (match(TOKEN_COLON, parser_data) == NULL) { doSynch = 1; break; }
+
 		t = parse_type(parser_data);
 		check_add_fun_param(idptr->lexeme, t, parser_data);
 		pl_.c = 1;
@@ -533,11 +557,15 @@ void parse_param_list_(ParserData *parser_data, struct Attributes *pl_)
 	switch (tok->token->type) {
 	case TOKEN_SEMICOLON:
 		if (match(TOKEN_SEMICOLON, parser_data) == NULL) { doSynch = 1; break; }
+
 		idptr = match(TOKEN_ID, parser_data);
 		if (idptr == NULL) { doSynch = 1; break; }
+
 		if (match(TOKEN_COLON, parser_data) == NULL) { doSynch = 1; break; }
+
 		t = parse_type(parser_data);
 		check_add_fun_param(idptr->lexeme, t, parser_data);
+
 		pl1_.c = pl_->c + 1;
 		parse_param_list_(parser_data, &pl1_);
 		pl_->c = pl1_.c;
@@ -670,8 +698,9 @@ struct Attributes parse_statement(ParserData *parser_data)
 	case TOKEN_ID:
 		v = parse_var(parser_data);
 		if (match(TOKEN_ASSIGNOP, parser_data) == NULL) { doSynch = 1; break; }
+
 		e = parse_expr(parser_data);
-		if (types_equal(v.t, e.t) && (v.t.std_type == INT || v.t.std_type == REAL))
+		if (types_equal(v.t, e.t, 0) && (v.t.std_type == INT || v.t.std_type == REAL) && e.t.fun == 0)
 			s.t = v.t;
 		else {
 			char *err_str = (char *)malloc(200);
@@ -685,22 +714,26 @@ struct Attributes parse_statement(ParserData *parser_data)
 	break;
 	case TOKEN_IF:
 		if (match(TOKEN_IF, parser_data) == NULL) { doSynch = 1; break; }
+
 		e = parse_expr(parser_data);
 		if (e.t.std_type != BOOL) {
 			semerr("If condition must be a bool", tok->line_no, parser_data);
 			s.t.std_type = ERR;
 		}
+
 		if (match(TOKEN_THEN, parser_data) == NULL) { doSynch = 1; break; }
 		parse_statement(parser_data);
 		parse_statement_(parser_data);
 	break;
 	case TOKEN_WHILE:
 		if (match(TOKEN_WHILE, parser_data) == NULL) { doSynch = 1; break; }
+
 		e = parse_expr(parser_data);
 		if (e.t.std_type != BOOL) {
 			semerr("While condition must be a bool", tok->line_no, parser_data);
 			s.t.std_type = ERR;
 		}
+
 		if (match(TOKEN_DO, parser_data) == NULL) { doSynch = 1; break; }
 		parse_statement(parser_data);
 	break;
@@ -751,6 +784,7 @@ struct Attributes parse_var(ParserData *parser_data)
 	case TOKEN_ID:
 	    idptr = match(TOKEN_ID, parser_data);
 		if (idptr == NULL) { doSynch = 1; break; }
+
 		Type idtype = get_type(idptr->lexeme, parser_data);
 		if (idtype.std_type == NONE) {
 			char *err_str = (char *)malloc(250);
@@ -759,6 +793,7 @@ struct Attributes parse_var(ParserData *parser_data)
 			v_.in.std_type = ERR;
 		} else
 			v_.in = idtype;
+
 		v.idptr = idptr->lexeme;
 		parse_var_(parser_data, &v_);
 		v.t = v_.t;
@@ -784,6 +819,7 @@ void parse_var_(ParserData *parser_data, struct Attributes *v_)
 	switch (tok->token->type) {
 	case TOKEN_LBRACKET:
 		if (match(TOKEN_LBRACKET, parser_data) == NULL) { doSynch = 1; break; }
+
 		e = parse_expr(parser_data);
 		if (v_->in.std_type == AINT || v_->in.std_type == AREAL) {
 			if (e.t.std_type == INT) {
@@ -797,6 +833,7 @@ void parse_var_(ParserData *parser_data, struct Attributes *v_)
 			semerr("Symbol must be an array", tok->line_no, parser_data);
 			v_->t.std_type = ERR;
 		}
+
 		if (match(TOKEN_RBRACKET, parser_data) == NULL) { doSynch = 1; break; }
 	break;
 	case TOKEN_ASSIGNOP:
@@ -828,18 +865,22 @@ void parse_expr_list(ParserData *parser_data, struct Attributes *el)
 	case TOKEN_NOT:
 	case TOKEN_ADDOP:
 		e = parse_expr(parser_data);
-		if (expected_count < 1) {
+
+		if (el->in.std_type == ERR)
+			el_.in.std_type = ERR;
+		else if (expected_count < 1) {
 			char *err_str = (char *)malloc(250);
 			sprintf(err_str, "Number of arguments do not match for function \"%s\": expecting %d, given %d", idptr, expected_count, 1);
 			semerr(err_str, tok->line_no, parser_data);
 			el_.in.std_type = ERR;
-		} else if (types_equal(expected_type, e.t) == 0) {
+		} else if (types_equal(expected_type, e.t, 1) == 0) {
 			char *err_str = (char *)malloc(250);
-			sprintf(err_str, "Argument type mismatch for function \"%s\" on arg %d: expecting %s, given %s", idptr, 1, type_to_str(expected_type), type_to_str(e.t));
+			sprintf(err_str, "Argument type mismatch for function \"%s\" on arg 1: expecting %s, given %s", idptr, type_to_str(expected_type), type_to_str(e.t));
 			semerr(err_str, tok->line_no, parser_data);
 			el_.in.std_type = ERR;
 		} else
 			el_.c = 1;
+		
 		el_.idptr = idptr;
 		parse_expr_list_(parser_data, &el_);
 	break;
@@ -863,6 +904,7 @@ void parse_expr_list_(ParserData *parser_data, struct Attributes *el_)
 	case TOKEN_COMMA:
 		if (match(TOKEN_COMMA, parser_data) == NULL) { doSynch = 1; break; }
 		e = parse_expr(parser_data);
+
 		if (el_->in.std_type == ERR)
 			el1_.in.std_type = ERR;
 		else if (expected_count < el_->c + 1) {
@@ -870,13 +912,14 @@ void parse_expr_list_(ParserData *parser_data, struct Attributes *el_)
 			sprintf(err_str, "Number of arguments do not match for function \"%s\": expecting %d, given too many", idptr, expected_count);
 			semerr(err_str, tok->line_no, parser_data);
 			el1_.in.std_type = ERR;
-		} else if (types_equal(expected_type, e.t) == 0) {
+		} else if (types_equal(expected_type, e.t, 1) == 0) {
 			char *err_str = (char *)malloc(250);
 			sprintf(err_str, "Argument type mismatch for function \"%s\" on arg %d: expecting %s, given %s", idptr, el_->c + 1, type_to_str(expected_type), type_to_str(e.t));
 			semerr(err_str, tok->line_no, parser_data);
 			el1_.in.std_type = ERR;
 		} else
 			el1_.c = el_->c + 1;
+
 		el1_.idptr = idptr;
 		parse_expr_list_(parser_data, &el1_);
 	break;
@@ -933,10 +976,11 @@ void parse_expr_(ParserData *parser_data, Attributes *e_)
 	switch (tok->token->type) {
 	case TOKEN_RELOP:
 		if (match(TOKEN_RELOP, parser_data) == NULL) { doSynch = 1; break; }
+		
 		se = parse_simple_expr(parser_data);
 		if (e_->in.std_type == ERR || se.t.std_type == ERR)
 			e_->t.std_type = ERR;
-		else if (types_equal(e_->in, se.t) == 0) {
+		else if (types_equal(e_->in, se.t, 1) == 0) {
 			semerr("Mixed mode relop not allowed", tok->line_no, parser_data);
 			e_->t.std_type = ERR;
 		} else if (e_->in.std_type == INT || e_->in.std_type == REAL)
@@ -984,6 +1028,7 @@ struct Attributes parse_simple_expr(ParserData *parser_data)
 	break;
 	case TOKEN_ADDOP:
 		parse_sign(parser_data);
+
 		t = parse_term(parser_data);
 		if (t.t.std_type == INT || t.t.std_type == REAL || t.t.std_type == ERR)
 			se_.in = t.t;
@@ -991,6 +1036,7 @@ struct Attributes parse_simple_expr(ParserData *parser_data)
 			semerr("Only int and real numbers can be prefixed with a +/-", tok->line_no, parser_data);
 			se_.in.std_type = ERR;
 		}
+
 		se_.in = t.t;
 		parse_simple_expr_(parser_data, &se_);
 		se.t = se_.t;
@@ -1013,10 +1059,11 @@ void parse_simple_expr_(ParserData *parser_data, struct Attributes *se_)
 	switch (tok->token->type) {
 	case TOKEN_ADDOP:
 		if (match(TOKEN_ADDOP, parser_data) == NULL) { doSynch = 1; break; }
+
 		t = parse_term(parser_data);
 		if (se_->in.std_type == ERR || t.t.std_type == ERR)
 			se1_.in.std_type = ERR;
-		else if (types_equal(se_->in, t.t) == 0) {
+		else if (types_equal(se_->in, t.t, 1) == 0) {
 			semerr("Mixed mode addop not allowed", tok->line_no, parser_data);
 			se1_.in.std_type = ERR;
 		} else if (tok->token->attribute == '+' || tok->token->attribute == '-') {
@@ -1033,6 +1080,7 @@ void parse_simple_expr_(ParserData *parser_data, struct Attributes *se_)
 				semerr("OR operands must be must be bool", tok->line_no, parser_data);
 			}
 		}
+
 		parse_simple_expr_(parser_data, &se1_);
 		se_->t = se1_.t;
 	break;
@@ -1091,10 +1139,11 @@ void parse_term_(ParserData *parser_data, struct Attributes *t_)
 	switch (tok->token->type) {
 	case TOKEN_MULOP:
 		if (match(TOKEN_MULOP, parser_data) == NULL) { doSynch = 1; break; }
+
 		f = parse_factor(parser_data);
 		if (t_->in.std_type == ERR || f.t.std_type == ERR)
 			t1_.in.std_type = ERR;
-		else if (types_equal(t_->in, f.t) == 0) {
+		else if (types_equal(t_->in, f.t, 1) == 0) {
 			semerr("Mixed mode mulop not allowed", tok->line_no, parser_data);
 			t1_.in.std_type = ERR;
 		} else if (tok->token->attribute == '*' || tok->token->attribute == '/' ||
@@ -1113,6 +1162,7 @@ void parse_term_(ParserData *parser_data, struct Attributes *t_)
 				t1_.in.std_type = ERR;
 			}
 		}
+
 		parse_term_(parser_data, &t1_);
 		t_->t = t1_.t;
 	break;
@@ -1150,6 +1200,7 @@ struct Attributes parse_factor(ParserData *parser_data)
 	case TOKEN_ID:
 		idptr = match(TOKEN_ID, parser_data);
 		if (idptr == NULL) { doSynch = 1; break; }
+
 		Type idtype = get_type(idptr->lexeme, parser_data);
 		if (idtype.std_type == NONE) {
 			char *err_str = (char *)malloc(250);
@@ -1158,6 +1209,7 @@ struct Attributes parse_factor(ParserData *parser_data)
 			f_.in.std_type = ERR;
 		} else
 			f_.in = idtype;
+
 		f_.idptr = idptr->lexeme;
 		parse_factor_(parser_data, &f_);
 		f.t = f_.t;
@@ -1177,6 +1229,7 @@ struct Attributes parse_factor(ParserData *parser_data)
 	break;
 	case TOKEN_NOT:
 		if (match(TOKEN_NOT, parser_data) == NULL) { doSynch = 1; break; }
+
 		f1 = parse_factor(parser_data);
 		if (f1.t.std_type == BOOL || f1.t.std_type == ERR)
 			f.t = f1.t;
@@ -1206,18 +1259,27 @@ void parse_factor_(ParserData *parser_data, struct Attributes *f_)
 	switch (tok->token->type) {
 	case TOKEN_LPAREN:
 		if (match(TOKEN_LPAREN, parser_data) == NULL) { doSynch = 1; break; }
+
+		el.in = f_->in;
 		el.idptr = f_->idptr;
 		parse_expr_list(parser_data, &el);
+
 		if (match(TOKEN_RPAREN, parser_data) == NULL) { doSynch = 1; break; }
+
 		if (el.t.std_type == ERR)
 			f_->t.std_type = ERR;
-		else
+		else {
 			f_->t = f_->in;
+			f_->t.fun = 0;
+		}
 	break;
 	case TOKEN_LBRACKET:
 		if (match(TOKEN_LBRACKET, parser_data) == NULL) { doSynch = 1; break; }
+
 		e = parse_expr(parser_data);
+
 		if (match(TOKEN_RBRACKET, parser_data) == NULL) { doSynch = 1; break; }
+
 		if (f_->in.std_type == ERR || e.t.std_type == ERR)
 			f_->t.std_type = ERR;
 		else if (e.t.std_type != INT) {

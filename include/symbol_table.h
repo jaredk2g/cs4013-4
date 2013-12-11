@@ -24,13 +24,13 @@ typedef struct Type
 	StdType std_type;
 	int start;
 	int end;
+	int fun;
 } Type;
 
 typedef struct Symbol
 {
 	char *name;
 	Type type;
-	int fun;
 	int count;
 	int param;
 } Symbol;
@@ -53,7 +53,7 @@ typedef struct Attributes
 	char *idptr;
 } Attributes;
 
-#define TYPE_DEFAULT (Type){NONE,0,0}
+#define TYPE_DEFAULT (Type){NONE,0,0,0}
 #define ATTRIBUTES_DEFAULT (Attributes){TYPE_DEFAULT,0,TYPE_DEFAULT,""}
 
 struct ParserData;
@@ -72,7 +72,7 @@ int get_num_params(char *name, struct ParserData *parser_data);
 Type get_param_type(char *name, int n, struct ParserData *parser_data);
 
 int type_size(Type t);
-int types_equal(Type a, Type b);
+int types_equal(Type a, Type b, int check_fun_equal);
 char *type_to_str(Type type);
 char *symbol_type_to_str(Symbol *symbol);
 void fprint_symbol_table(FILE *f, SymbolTable *symbol_table);

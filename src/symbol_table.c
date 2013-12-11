@@ -11,7 +11,6 @@ SymbolTable *new_symbol_table_entry(char *name, Attributes attrs)
 
 	new->symbol = (Symbol *)malloc(sizeof(Symbol));
 	new->symbol->type = attrs.t;
-	new->symbol->fun = 0;
 	new->symbol->param = 0;
 	new->symbol->count = 0;
 
@@ -37,7 +36,7 @@ Symbol *check_enter_method(char *name, struct ParserData *parser_data)
 
 	// otherwise function name
 	if (parser_data->sym_eye != NULL)
-		new->symbol->fun = 1;
+		new->symbol->type.fun = 1;
 
 	// new symbol table
 	if (parser_data->symbol_table == NULL) {
@@ -71,7 +70,8 @@ int check_exit_method(struct ParserData *parser_data)
 	// Problem: upon exit moves eye to the function's parent prematurely
 	//          instead of to the function itself
 	// Solution: perform a NOP for 1 exit cycle to avoid skipping over function
-	if (parser_data->sym_eye->symbol->fun == 1) {
+	if (parser_data->sym_eye->symbol->type.fun == 1 && parser_data->sym_eye->child == NULL) {
+	//if () {
 		// now we can move on with our lives..
 		if (parser_data->sym_eye->temp != NULL)
 			parser_data->sym_eye = parser_data->sym_eye->temp;
@@ -88,7 +88,7 @@ int check_exit_method(struct ParserData *parser_data)
 
 Symbol *check_add_prog_param(char *name, struct ParserData *parser_data)
 {
-	return check_add_var(name, (Attributes){{PGPARAM,0,0},0,TYPE_DEFAULT,""}, parser_data);
+	return check_add_var(name, (Attributes){{PGPARAM,0,0,0},0,TYPE_DEFAULT,""}, parser_data);
 }
 
 Symbol *check_add_fun_param(char *name, Attributes attrs, struct ParserData *parser_data)
@@ -131,8 +131,10 @@ Symbol *check_add_var(char *name, Attributes attrs, struct ParserData *parser_da
 
 void set_method_type(Type type, struct ParserData *parser_data)
 {
+	type.fun = 1;
+
 	// handle case where eye is looking at function
-	if (parser_data->sym_eye->symbol->fun == 1)
+	if (parser_data->sym_eye->symbol->type.fun == 1)
 		parser_data->sym_eye->symbol->type = type;
 	else if (parser_data->sym_eye->parent != NULL)
 		parser_data->sym_eye->parent->symbol->type = type;
@@ -141,7 +143,7 @@ void set_method_type(Type type, struct ParserData *parser_data)
 void set_method_param_count(int count, struct ParserData *parser_data)
 {
 	// handle case where eye is looking at function
-	if (parser_data->sym_eye->symbol->fun == 1)
+	if (parser_data->sym_eye->symbol->type.fun == 1)
 		parser_data->sym_eye->symbol->count = count;
 	else if (parser_data->sym_eye->parent != NULL)
 		parser_data->sym_eye->parent->symbol->count = count;
@@ -164,7 +166,7 @@ SymbolTable *get_symbol(char *name, struct ParserData *parser_data, int global_s
 	if (global_scope == 0) {
 		// Avoid jumping up to a new scope when doing a local search
 		// on a function after a turn with no children
-		if (curr->symbol->fun == 1 && curr->child == NULL)
+		if (curr->symbol->type.fun == 1 && curr->child == NULL)
 			stop_condition = curr;
 		else
 			stop_condition = curr->parent;
@@ -247,10 +249,13 @@ int type_size(Type t)
 	return unit_size * multiplier;
 }
 
-int types_equal(Type a, Type b)
+int types_equal(Type a, Type b, int check_fun_equal)
 {
 	if (a.std_type == b.std_type) {
 		if ((a.std_type == AINT || a.std_type == AREAL) && (a.start != b.start || a.end != b.end))
+			return 0;
+
+		if (check_fun_equal == 1 && a.fun != b.fun)
 			return 0;
 
 		return 1;
@@ -261,39 +266,48 @@ int types_equal(Type a, Type b)
 
 char *type_to_str(Type type)
 {
-	char *type_str, *type_str_2;
+	char *str, *str2, *str3;
 	switch (type.std_type)
 	{
-	case PGNAME: return "pgm";
-	case PGPARAM: return "param";
-	case INT: return "int";
-	case REAL: return "real";
-	case BOOL: return "bool";
+	case PGNAME: str2 = "pgm"; break;
+	case PGPARAM: str2 = "param"; break;
+	case INT: str2 = "int"; break;
+	case REAL: str2 = "real"; break;
+	case BOOL: str2 = "bool"; break;
 	case AINT:
 	case AREAL:
-		type_str = (type.std_type == AINT) ? "int" : "real";
-		type_str_2 = (char *)malloc(100);
-		sprintf(type_str_2, "array [%d..%d] of %s", type.start, type.end, type_str);
-		return type_str_2;
+		str = (type.std_type == AINT) ? "int" : "real";
+		str2 = (char *)malloc(100);
+		sprintf(str2, "array [%d..%d] of %s", type.start, type.end, str);
+	break;
 	case ERR: return "err";
+	case NONE: return "none";
 	default: return "";
 	}
+
+	str3 = str2;
+	if (type.fun == 1) {
+		str3 = (char *)malloc(100);
+		sprintf(str3, "%s, fun", str2);
+	}
+
+	return str3;
 }
 
 char *symbol_type_to_str(Symbol *symbol)
 {
-	char *type_str = type_to_str(symbol->type);
-	char *type_str2 = type_str;
+	char *str = type_to_str(symbol->type);
+	char *str2 = str;
 
-	if (symbol->fun == 1) {
-		type_str2 = (char *)malloc(100);
-		sprintf(type_str2, "%s, fun, %d arg(s)", type_str, symbol->count);
-	} else if (symbol->param == 1) {
-		type_str2 = (char *)malloc(100);
-		sprintf(type_str2, "%s, fun param", type_str);
+	if (symbol->type.fun == 1) {
+		str2 = (char *)malloc(100);
+		sprintf(str2, "%s, %d arg(s)", str, symbol->count);
+	} if (symbol->param == 1) {
+		str2 = (char *)malloc(100);
+		sprintf(str2, "%s, fun param", str);
 	}
 
-	return type_str2;
+	return str2;
 }
 
 void output_symbol_table(FILE *f, SymbolTable *symbol_table, int level)
@@ -309,7 +323,7 @@ void output_symbol_table(FILE *f, SymbolTable *symbol_table, int level)
 		Type t = s->symbol->type;
 
 		char *offset_str = (char *)malloc(100);
-		if (s->symbol->param == 0 && s->symbol->fun == 0 && t.std_type != PGNAME) {
+		if (s->symbol->param == 0 && t.fun == 0 && t.std_type != PGNAME && t.std_type != PGPARAM) {
 			sprintf(offset_str, "offset %d", offset);
 
 			// compute new offset

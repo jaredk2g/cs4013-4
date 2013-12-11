@@ -12,7 +12,7 @@ START_TEST (test_check_enter_method)
 	result = check_enter_method("test", parser_data);
 	ck_assert(result != NULL);
 	ck_assert_str_eq("test", result->name);
-	ck_assert_int_eq(1, result->fun);
+	ck_assert_int_eq(1, result->type.fun);
 	ck_assert(result->type.std_type == NONE);
 }
 END_TEST
@@ -110,7 +110,7 @@ START_TEST (test_get_symbol)
 
 	result = get_symbol("fun", parser_data, 1);
 	ck_assert_str_eq("fun", result->symbol->name);
-	ck_assert_int_eq(1, result->symbol->fun);
+	ck_assert_int_eq(1, result->symbol->type.fun);
 	ck_assert(result->symbol->type.std_type == NONE);
 
 	// check global search
@@ -128,20 +128,53 @@ START_TEST (test_get_symbol)
 }
 END_TEST
 
+
+START_TEST (test_get_symbol_scope)
+{
+	// enter program
+	ck_assert(check_enter_method("program", parser_data) != NULL);
+
+	// enter fun1
+	ck_assert(check_enter_method("fun1", parser_data) != NULL);
+
+	// exit fun1
+	ck_assert(check_exit_method(parser_data) == 0);
+
+	// enter fun2
+	ck_assert(check_enter_method("fun2", parser_data) != NULL);
+
+	// enter fun3
+	ck_assert(check_enter_method("fun3", parser_data) != NULL);
+
+	// exit fun3
+	ck_assert(check_exit_method(parser_data) == 0);
+
+	// exit fun2
+	ck_assert(check_exit_method(parser_data) == 0);
+
+	// check that fun3 does not exist
+	ck_assert(get_symbol("fun3", parser_data, 1) == NULL);
+	ck_assert(get_type("fun3", parser_data).std_type == NONE);
+
+	// exit program
+	ck_assert(check_exit_method(parser_data) == 0);
+}
+END_TEST
+
 START_TEST (test_set_method_type)
 {
 	ck_assert(check_enter_method("program", parser_data) != NULL);
 
-	set_method_type((Type){INT,0,0}, parser_data);
+	set_method_type((Type){INT,0,0,0}, parser_data);
 	ck_assert(get_type("program", parser_data).std_type == PGNAME);
 
 	ck_assert(check_enter_method("fun", parser_data) != NULL);
 
-	set_method_type((Type){INT,0,0}, parser_data);
+	set_method_type((Type){INT,0,0,0}, parser_data);
 	SymbolTable *fun = get_symbol("fun", parser_data, 1);
 	ck_assert(fun != NULL);
 	ck_assert(fun->symbol->type.std_type == INT);
-	ck_assert(fun->symbol->fun == 1);
+	ck_assert(fun->symbol->type.fun == 1);
 }
 END_TEST
 
@@ -206,21 +239,25 @@ START_TEST (test_types_equal)
 {
 	Type a, b;
 
-	a = (Type){BOOL,0,0}; 
-	b = (Type){BOOL,0,0};
-	ck_assert_int_eq(1, types_equal(a,b));
+	a = (Type){BOOL,0,0,0}; 
+	b = (Type){BOOL,0,0,0};
+	ck_assert_int_eq(1, types_equal(a,b,0));
 
-	a = (Type){INT,0,0}; 
-	b = (Type){REAL,0,0};
-	ck_assert_int_eq(0, types_equal(a,b));
+	a = (Type){INT,0,0,0}; 
+	b = (Type){REAL,0,0,0};
+	ck_assert_int_eq(0, types_equal(a,b,0));
 
-	a = (Type){AINT,0,30}; 
-	b = (Type){AINT,0,10};
-	ck_assert_int_eq(0, types_equal(a,b));
+	a = (Type){AINT,0,30,0}; 
+	b = (Type){AINT,0,10,0};
+	ck_assert_int_eq(0, types_equal(a,b,0));
 
-	a = (Type){AINT,0,30}; 
-	b = (Type){AINT,0,30};
-	ck_assert_int_eq(1, types_equal(a,b));
+	a = (Type){AINT,0,30,0}; 
+	b = (Type){AINT,0,30,0};
+	ck_assert_int_eq(1, types_equal(a,b,0));
+
+	a = (Type){AINT,0,30,1}; 
+	b = (Type){AINT,0,30,0};
+	ck_assert_int_eq(0, types_equal(a,b,1));
 }
 END_TEST
 
@@ -257,6 +294,7 @@ Suite * symbol_table_suite (void)
 	tcase_add_test (tc_core, test_check_add_prog_param);
 	tcase_add_test (tc_core, test_check_add_fun_param);
 	tcase_add_test (tc_core, test_get_symbol);
+	tcase_add_test (tc_core, test_get_symbol_scope);
 	tcase_add_test (tc_core, test_set_method_type);
 	tcase_add_test (tc_core, test_set_method_param_count);
 	tcase_add_test (tc_core, test_get_type);
